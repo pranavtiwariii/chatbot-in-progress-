@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart Legal Chatbot (Wikipedia)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f2f2f2; }
+    #chat { width: 400px; margin: 30px auto; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 0 10px #ccc; }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
+    .user { color: green; text-align: right; margin: 5px 0; }
+    .bot { color: blue; text-align: left; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <h3>LegalAI (Wikipedia Powered)</h3>
+    <div id="messages"></div>
+    <input type="text" id="prompt" placeholder="Ask a legal question..." style="width:75%;" />
+    <button onclick="ask()">Send</button>
+  </div>
+
+  <script>
+    async function ask() {
+      const input = document.getElementById('prompt');
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage('user', message);
+      input.value = '';
+
+      const response = await fetchWikiSummary(message);
+      appendMessage('bot', response);
+    }
+
+    async function fetchWikiSummary(query) {
+      const topic = encodeURIComponent(query.toLowerCase().trim());
+      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${topic}`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+
+        if (data.extract) {
+          return data.extract;
+        } else {
+          return "I couldn’t find an exact answer. Try rephrasing your question.";
+        }
+      } catch (err) {
+        return "Sorry, I couldn’t find anything relevant on Wikipedia.";
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement('div');
+      msg.className = sender;
+      msg.innerText = text;
+      document.getElementById('messages').appendChild(msg);
+      document.getElementById('messages').scrollTop = 9999;
+    }
+  </script>
+</body>
+</html>
